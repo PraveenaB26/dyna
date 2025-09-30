@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Management</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    h1 { color: #2c3e50; }
+    form { margin-bottom: 1rem; }
+    input, button { padding: 0.5rem; margin: 0.3rem; }
+    table { border-collapse: collapse; width: 60%; margin-top: 1rem; }
+    th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+    th { background: #f4f4f4; }
+    .update-form { display: none; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>User Management</h1>
+
+  <!-- Create user form -->
+  <h3>Add New User</h3>
+  <form id="createForm">
+    <input type="text" id="name" placeholder="Name" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <button type="submit">Add User</button>
+  </form>
+
+  <!-- Users list -->
+  <h3>All Users</h3>
+  <button onclick="fetchUsers()">Refresh</button>
+  <table id="usersTable">
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>Email</th><th>Action</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Update user form -->
+  <div class="update-form" id="updateFormContainer">
+    <h3>Update User</h3>
+    <form id="updateForm">
+      <input type="hidden" id="updateId">
+      <input type="text" id="updateName" placeholder="Name" required>
+      <input type="email" id="updateEmail" placeholder="Email" required>
+      <button type="submit">Update User</button>
+    </form>
+  </div>
+
+  <script>
+    const API_URL = "http://127.0.0.1:5000"; // your Flask backend
+
+    // Fetch and display users
+    async function fetchUsers() {
+      const res = await fetch(`${API_URL}/users`);
+      const data = await res.json();
+      const tbody = document.querySelector("#usersTable tbody");
+      tbody.innerHTML = "";
+      data.forEach(user => {
+        const row = `<tr>
+          <td>${user.id}</td>
+          <td>${user.name}</td>
+          <td>${user.email}</td>
+          <td><button onclick="showUpdateForm(${user.id}, '${user.name}', '${user.email}')">Edit</button></td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    // Create user
+    document.getElementById("createForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      await fetch(`${API_URL}/users`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({name, email})
+      });
+      e.target.reset();
+      fetchUsers();
+    });
+
+    // Show update form
+    function showUpdateForm(id, name, email) {
+      document.getElementById("updateFormContainer").style.display = "block";
+      document.getElementById("updateId").value = id;
+      document.getElementById("updateName").value = name;
+      document.getElementById("updateEmail").value = email;
+    }
+
+    // Update user
+    document.getElementById("updateForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const id = document.getElementById("updateId").value;
+      const name = document.getElementById("updateName").value;
+      const email = document.getElementById("updateEmail").value;
+      await fetch(`${API_URL}/users/${id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({name, email})
+      });
+      document.getElementById("updateFormContainer").style.display = "none";
+      fetchUsers();
+    });
+
+    // Load users on page load
+    fetchUsers();
+  </script>
+</body>
+</html>
