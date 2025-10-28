@@ -1,9 +1,15 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
+import os
 
 app = Flask(__name__)
-DATABASE = "db.sqlite3"
+#DATABASE = "db.sqlite3"
+
+ORS(app)
+# ✅ Use absolute path for the database
+basedir = os.path.abspath(os.path.dirname(__file__))
+DATABASE = os.path.join(basedir, "db.sqlite3")
 
 
 def get_db_connection():
